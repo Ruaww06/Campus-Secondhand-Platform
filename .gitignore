@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+app/static/uploads/*
+!app/static/uploads/.gitkeep

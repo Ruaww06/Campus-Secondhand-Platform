@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% import "macros/review_list.html" as review_macro %}
+{% import "macros/goods_card.html" as goods_macro %}
+
+{% block title %}{{ goods.title }} - 校园二手交易平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.gallery-main {
+    width: 100%;
+    height: 400px;
+    object-fit: contain;
+    background: #f0ede8;
+    border-radius: var(--border-radius);
+    border: var(--border-width) solid var(--border-color);
+}
+.gallery-thumb {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid var(--border-light);
+    transition: var(--transition-bounce);
+}
+.gallery-thumb:hover,
+.gallery-thumb.active {
+    border-color: var(--color-primary);
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0px 0px var(--color-primary);
+}
+.seller-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--color-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+.price-strikethrough {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ===== 返回链接 ===== -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('goods.index') }}">首页</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('goods.index', category_id=goods.category_id) }}">{{ goods.category.category_name }}</a></li>
+        <li class="breadcrumb-item active">{{ goods.title }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- ===== 左侧：图片画廊 ===== -->
+    <div class="col-md-6">
+        {% if goods.images %}
+        <img id="galleryMain" class="gallery-main mb-2" src="{{ goods.images[0].image_url }}" alt="{{ goods.title }}">
+        {% if goods.images|length > 1 %}
+        <div class="d-flex gap-2 flex-wrap">
+            {% for img in goods.images %}
+            <img class="gallery-thumb {% if loop.first %}active{% endif %}"
+                 src="{{ img.image_url }}"
+                 alt="缩略图 {{ loop.index }}"
+                 onclick="document.getElementById('galleryMain').src = this.src; document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="gallery-main d-flex align-items-center justify-content-center">
+            <div class="text-center text-muted">
+                <img src="{{ url_for('static', filename='img/default-goods.svg') }}" alt="暂无图片" style="width:120px;opacity:0.4;">
+                <p class="mt-2">暂无商品图片</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== 右侧：商品信息 ===== -->
+    <div class="col-md-6">
+        <!-- 状态标签 -->
+        <div class="mb-2">
+            <span class="badge {{ condition_class(goods.condition_level) }}">{{ goods.condition_label }}</span>
+            {% if goods.status != 'on_sale' %}
+                {% if goods.status == 'sold' %}
+                <span class="badge bg-secondary">已售出</span>
+                {% elif goods.status == 'off_shelf' %}
+                <span class="badge bg-warning text-dark">已下架</span>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- 标题 -->
+        <h3 class="fw-bold mb-2">{{ goods.title }}</h3>
+
+        <!-- 价格 -->
+        <div class="mb-3">
+            <span class="text-primary" style="font-size:2rem;font-weight:800;font-family:var(--font-display);">&yen;{{ '%.2f'|format(goods.price) }}</span>
+            {% if goods.original_price %}
+            <span class="price-strikethrough ms-2">&yen;{{ '%.2f'|format(goods.original_price) }}</span>
+            <span class="badge bg-warning text-dark ms-1">省 &yen;{{ '%.2f'|format(goods.original_price - goods.price) }}</span>
+            {% endif %}
+        </div>
+
+        <!-- 元信息 -->
+        <div class="row mb-3 text-muted small">
+            <div class="col-6 mb-1">校区: {{ goods.region }}</div>
+            <div class="col-6 mb-1">浏览量: {{ goods.view_count }}</div>
+            <div class="col-6 mb-1">发布时间: {{ goods.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            <div class="col-6 mb-1">分类: {{ goods.category.category_name }}</div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="d-grid gap-2 mb-4">
+            {% if session.user_id and session.user_id == goods.seller_id %}
+                <!-- 卖家自己 -->
+                <a href="{{ url_for('goods.edit', goods_id=goods.goods_id) }}" class="btn btn-outline-primary">
+                    编辑商品
+                </a>
+            {% elif goods.status == 'on_sale' %}
+                <!-- 买家 -->
+                <form action="{{ url_for('order.create') }}" method="post" class="d-grid" data-prevent-double-submit>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="goods_id" value="{{ goods.goods_id }}">
+                    <button type="submit" class="btn btn-danger btn-lg">立即购买</button>
+                </form>
+                <button type="button" class="btn btn-outline-warning {% if is_favorited %}favorited{% endif %}"
+                        data-toggle-favorite data-goods-id="{{ goods.goods_id }}">
+                    <span class="favorite-icon">{% if is_favorited %}&#9829;{% else %}&#9825;{% endif %} {% if is_favorited %}已收藏{% else %}收藏{% endif %}</span>
+                </button>
+            {% endif %}
+        </div>
+
+        <!-- 联系方式 -->
+        {% if goods.contact_phone or goods.contact_wechat %}
+        <div class="card bg-light mb-4">
+            <div class="card-body py-3">
+                <h6 class="card-title mb-2">联系方式</h6>
+                {% if goods.contact_phone %}
+                <p class="mb-1 small"><strong>电话:</strong> {{ goods.contact_phone }}</p>
+                {% endif %}
+                {% if goods.contact_wechat %}
+                <p class="mb-0 small"><strong>微信:</strong> {{ goods.contact_wechat }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 卖家信息 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="seller-avatar me-3">
+                        {{ seller.username[:1] }}
+                    </div>
+                    <div>
+                        <h6 class="mb-1">{{ seller.username }}</h6>
+                        <p class="text-muted small mb-0">
+                            {{ seller.region }} /
+                            <a href="{{ url_for('review.seller_reviews', seller_id=seller.user_id) }}" class="text-decoration-none">
+                                查看卖家评价
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 商品描述 ===== -->
+{% if goods.description %}
+<div class="card mb-4 mt-2">
+    <div class="card-header">
+        <h5 class="mb-0">商品描述</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-0" style="white-space:pre-wrap;">{{ goods.description }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- ===== 商品评价 ===== -->
+{{ review_macro.render_goods_reviews(goods.goods_id) }}
+
+<!-- ===== 相关商品推荐 ===== -->
+{% if related_goods %}
+<div class="mt-5">
+    <h5 class="mb-3">相关推荐</h5>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+        {% for item in related_goods %}
+        <div class="col">
+            {{ goods_macro.render_goods_card(item) }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

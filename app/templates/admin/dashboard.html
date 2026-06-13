@@ -1,0 +1,163 @@
+{% extends "admin/base.html" %}
+
+{% block title %}仪表盘{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">仪表盘</h1>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">注册用户</h6>
+                        <h3 class="mb-0">{{ stats.user_count }}</h3>
+                    </div>
+                    <i class="bi bi-people fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">商品总数</h6>
+                        <h3 class="mb-0">{{ stats.goods_count }}</h3>
+                    </div>
+                    <i class="bi bi-box-seam fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">订单总数</h6>
+                        <h3 class="mb-0">{{ stats.order_count }}</h3>
+                    </div>
+                    <i class="bi bi-cart-check fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">评价总数</h6>
+                        <h3 class="mb-0">{{ stats.review_count }}</h3>
+                    </div>
+                    <i class="bi bi-star fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>待处理订单</span>
+                <span class="badge bg-danger">{{ stats.pending_orders }}</span>
+            </div>
+            <div class="card-body">
+                <p class="card-text">今日新增订单: <strong>{{ stats.today_orders }}</strong></p>
+                <a href="{{ url_for('admin.admin_orders') }}" class="btn btn-primary btn-sm">查看全部订单</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                快捷操作
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary btn-sm">用户管理</a>
+                    <a href="{{ url_for('admin.admin_goods') }}" class="btn btn-outline-success btn-sm">商品管理</a>
+                    <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-info btn-sm">分类管理</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                最近订单
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>买家</th>
+                            <th>状态</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.order_no }}</td>
+                            <td>{{ order.buyer.username if order.buyer else '-' }}</td>
+                            <td>
+                                {% set odr_status_map = {'pending': ('warning', '待确认'), 'confirmed': ('info', '已确认'), 'completed': ('success', '已完成'), 'cancelled': ('secondary', '已取消')} %}
+                                {% set odr_class, odr_label = odr_status_map.get(order.status, ('secondary', '未知')) %}
+                                <span class="badge bg-{{ odr_class }}">{{ odr_label }}</span>
+                            </td>
+                            <td><small>{{ order.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">暂无订单</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                最近操作日志
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>管理员</th>
+                            <th>详情</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                            <td>{{ log.admin.username if log.admin else '-' }}</td>
+                            <td><small>{{ log.detail or '-' }}</small></td>
+                            <td><small>{{ log.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">暂无日志</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

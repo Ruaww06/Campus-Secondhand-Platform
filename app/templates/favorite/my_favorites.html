@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "macros/pagination.html" as pagination_macro %}
+
+{% block title %}我的收藏 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">我的收藏</h2>
+        {% if favorites %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for fav in favorites %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if fav.goods.main_image_url %}
+                    <img src="{{ fav.goods.main_image_url }}" class="card-img-top" alt="{{ fav.goods.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <span class="text-muted">暂无图片</span>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('goods.detail', goods_id=fav.goods.goods_id) }}" class="text-decoration-none">{{ fav.goods.title }}</a>
+                        </h5>
+                        <p class="card-text text-danger fw-bold">¥{{ fav.goods.price }}</p>
+                        <p class="card-text">
+                            <span class="badge {{ condition_class(fav.goods.condition_level) }}">{{ fav.goods.condition_label }}</span>
+                            {% if fav.goods.status == 'on_sale' %}
+                            <span class="badge bg-success">在售</span>
+                            {% elif fav.goods.status == 'sold' %}
+                            <span class="badge bg-secondary">已售</span>
+                            {% elif fav.goods.status == 'off_shelf' %}
+                            <span class="badge bg-warning text-dark">已下架</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ fav.goods.status }}</span>
+                            {% endif %}
+                        </p>
+                        <p class="card-text text-muted"><small>收藏于 {{ fav.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <form action="{{ url_for('favorite.remove_favorite') }}" method="post" class="d-inline" data-prevent-double-submit>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="goods_id" value="{{ fav.goods.goods_id }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">取消收藏</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if pagination is defined and pagination.pages > 1 %}
+        {{ pagination_macro.render_pagination(pagination) }}
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <img src="{{ url_for('static', filename='img/default-goods.svg') }}" alt="暂无收藏" class="mb-3" style="width:120px;opacity:0.4;">
+            <h5 class="text-muted">暂无收藏商品</h5>
+            <a href="{{ url_for('goods.index') }}" class="btn btn-primary mt-2">去逛逛</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

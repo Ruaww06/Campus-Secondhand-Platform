@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% import "macros/pagination.html" as pagination_macro %}
+
+{% block title %}我买到的 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+{% set status_map = {'pending': ('warning', '待确认'), 'confirmed': ('info', '已确认'),
+                     'completed': ('success', '已完成'), 'cancelled': ('secondary', '已取消')} %}
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">我买到的</h4>
+
+        {% if orders %}
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="min-width: 160px;">订单号</th>
+                                <th>商品</th>
+                                <th>卖家</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>下单时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            {% set status_class, status_label = status_map.get(order.status, ('secondary', '未知')) %}
+                            <tr>
+                                <td>
+                                    <small class="font-monospace text-muted">{{ order.order_no }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if order.goods.main_image_url %}
+                                        <img src="{{ order.goods.main_image_url }}" class="rounded me-2"
+                                             style="width: 40px; height: 40px; object-fit: cover;"
+                                             alt="{{ order.goods.title }}">
+                                        {% else %}
+                                        <div class="bg-secondary rounded me-2 d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <span class="text-white" style="font-size: 0.8rem;">&#128230;</span>
+                                        </div>
+                                        {% endif %}
+                                        <a href="{{ url_for('goods.detail', goods_id=order.goods.goods_id) }}"
+                                           class="text-decoration-none">
+                                            {{ order.goods.title | truncate(15, True) }}
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>{{ order.seller.username }}</td>
+                                <td>
+                                    <span class="text-danger fw-bold">&yen;{{ '%.2f'|format(order.goods.price) }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ status_class }}">{{ status_label }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <a href="{{ url_for('order.detail', order_id=order.order_id) }}"
+                                           class="btn btn-outline-primary btn-sm">
+                                            查看详情
+                                        </a>
+
+                                        {# 已确认状态：确认收货 #}
+                                        {% if order.status == 'confirmed' %}
+                                        <form method="POST"
+                                              action="{{ url_for('order.complete', order_id=order.order_id) }}"
+                                              data-confirm="确认已收到商品？"
+                                              data-prevent-double-submit>
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                确认收货
+                                            </button>
+                                        </form>
+                                        {% endif %}
+
+                                        {# 已完成且未评价：去评价 #}
+                                        {% if order.status == 'completed' and not order.review %}
+                                        <a href="{{ url_for('review.create_review', order_id=order.order_id) }}"
+                                           class="btn btn-outline-success btn-sm">
+                                            去评价
+                                        </a>
+                                        {% endif %}
+
+                                        {# pending 状态：取消 #}
+                                        {% if order.status == 'pending' %}
+                                        <form method="POST"
+                                              action="{{ url_for('order.cancel', order_id=order.order_id) }}"
+                                              data-confirm="确定要取消此订单？"
+                                              data-prevent-double-submit>
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                取消
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{ pagination_macro.render_pagination(pagination) }}
+
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <img src="{{ url_for('static', filename='img/default-goods.svg') }}" alt="暂无记录" class="mb-3" style="width:120px;opacity:0.4;">
+                <p class="text-muted mb-3" style="font-size: 1.2rem;">还没有购买过商品</p>
+                <a href="{{ url_for('goods.index') }}" class="btn btn-primary">
+                    去逛逛
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

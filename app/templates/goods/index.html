@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% import "macros/goods_card.html" as goods_macro %}
+{% import "macros/pagination.html" as pagination_macro %}
+
+{% block title %}
+{% if form.q.data %}搜索: {{ form.q.data }} - {% endif %}校园二手交易平台
+{% endblock %}
+
+{% block content %}
+<!-- ===== Hero 搜索区 ===== -->
+<div class="hero-search rounded p-4 p-md-5 mb-4 text-center">
+    <h1 class="text-white mb-2">校园二手交易平台</h1>
+    <p class="text-white-50 mb-4">淘好物，卖闲置，让每一件物品都有第二次生命</p>
+    <form action="{{ url_for('goods.search') }}" method="get" class="row g-2 justify-content-center">
+        <div class="col-12 col-md-5">
+            <input type="text" name="q" class="form-control form-control-lg" placeholder="搜索你想要的宝贝..."
+                   value="{{ form.q.data or '' }}">
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="category_id" class="form-select form-select-lg">
+                <option value="">全部分类</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category_id }}" {% if form.category_id.data == cat.category_id|string %}selected{% endif %}>{{ cat.category_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                搜索
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- ===== 筛选栏 ===== -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form id="filterForm" action="{{ url_for('goods.index') }}" method="get" class="row g-2 align-items-center">
+            {% if form.q.data %}
+            <input type="hidden" name="q" value="{{ form.q.data }}">
+            {% endif %}
+            {% if form.category_id.data %}
+            <input type="hidden" name="category_id" value="{{ form.category_id.data }}">
+            {% endif %}
+
+            <div class="col-auto">
+                <label class="form-label mb-0 small text-muted">价格</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" name="min_price" class="form-control form-control-sm" placeholder="最低" min="0" step="0.01"
+                           value="{{ form.min_price.data or '' }}" style="max-width:80px;">
+                    <span class="input-group-text">-</span>
+                    <input type="number" name="max_price" class="form-control form-control-sm" placeholder="最高" min="0" step="0.01"
+                           value="{{ form.max_price.data or '' }}" style="max-width:80px;">
+                </div>
+            </div>
+
+            <div class="col-auto">
+                <label class="form-label mb-0 small text-muted">校区</label>
+                <select name="region" class="form-select form-select-sm">
+                    {% for opt in form.region.choices %}
+                    <option value="{{ opt[0] }}" {% if form.region.data == opt[0] %}selected{% endif %}>{{ opt[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-auto">
+                <label class="form-label mb-0 small text-muted">新旧</label>
+                <select name="condition_level" class="form-select form-select-sm">
+                    {% for opt in form.condition_level.choices %}
+                    <option value="{{ opt[0] }}" {% if form.condition_level.data == opt[0] %}selected{% endif %}>{{ opt[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-auto">
+                <label class="form-label mb-0 small text-muted">排序</label>
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for opt in form.sort.choices %}
+                    <option value="{{ opt[0] }}" {% if form.sort.data == opt[0] %}selected{% endif %}>{{ opt[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-outline-primary">筛选</button>
+                <a href="{{ url_for('goods.index') }}" class="btn btn-sm btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== 商品列表 ===== -->
+{% if goods %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-muted">
+        共 <strong>{{ pagination.total }}</strong> 件商品
+        {% if form.q.data %}，关键词"<strong>{{ form.q.data }}</strong>"{% endif %}
+    </span>
+</div>
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+    {% for item in goods %}
+    <div class="col">
+        {{ goods_macro.render_goods_card(item) }}
+    </div>
+    {% endfor %}
+</div>
+{{ pagination_macro.render_pagination(pagination) }}
+{% else %}
+<div class="text-center py-5">
+    <img src="{{ url_for('static', filename='img/default-goods.svg') }}" alt="暂无商品" class="mb-3" style="width:120px;opacity:0.4;">
+    <h5 class="text-muted">暂无相关商品</h5>
+    <p class="text-muted">试试调整筛选条件或浏览其他分类</p>
+    <a href="{{ url_for('goods.index') }}" class="btn btn-primary mt-2">浏览全部商品</a>
+</div>
+{% endif %}
+{% endblock %}

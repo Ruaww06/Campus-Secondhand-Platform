@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seller.username }}的评价 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex align-items-center mb-4">
+            <div class="flex-shrink-0">
+                {% if seller.avatar %}
+                <img src="{{ url_for('static', filename=seller.avatar) }}" alt="{{ seller.username }}" class="rounded-circle" width="64" height="64">
+                {% else %}
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                    {{ seller.username[0] }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h4 class="mb-0">{{ seller.username }}</h4>
+                <p class="mb-0 text-muted">
+                    {% if avg_rating %}
+                    <span class="text-warning">&#9733; {{ "%.1f"|format(avg_rating) }}</span>
+                    {% else %}
+                    <span class="text-muted">暂无评分</span>
+                    {% endif %}
+                    <span class="ms-2">共 {{ reviews|length }} 条评价</span>
+                </p>
+            </div>
+        </div>
+
+        {% if reviews %}
+        <div class="list-group">
+            {% for review in reviews %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div>
+                        <div class="d-flex align-items-center mb-2">
+                            <strong class="me-2">{{ review.reviewer.username if review.reviewer else '匿名用户' }}</strong>
+                            <span class="text-warning">
+                                {% for i in range(review.rating) %}&#9733;{% endfor %}
+                                {% for i in range(5 - review.rating) %}&#9734;{% endfor %}
+                            </span>
+                        </div>
+                        {% if review.content %}
+                        <p class="mb-1">{{ review.content }}</p>
+                        {% endif %}
+                        {% if review.order and review.order.goods %}
+                        <p class="mb-0">
+                            <small class="text-muted">购买商品：<a href="{{ url_for('goods.detail', goods_id=review.order.goods.goods_id) }}" class="text-decoration-none">{{ review.order.goods.title }}</a></small>
+                        </p>
+                        {% endif %}
+                        <small class="text-muted">{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">该卖家暂无评价</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

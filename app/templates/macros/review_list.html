@@ -1,0 +1,25 @@
+{% macro render_goods_reviews(goods_id) %}
+    {% set reviews = get_reviews_by_goods(goods_id) if get_reviews_by_goods else [] %}
+    <div class="review-section mt-4">
+        <h5>商品评价</h5>
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="review-item border rounded p-3 mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>{{ review.reviewer.username }}</strong>
+                    <span class="text-warning">
+                        {% for i in range(review.rating) %}★{% endfor %}
+                        {% for i in range(5 - review.rating) %}☆{% endfor %}
+                    </span>
+                </div>
+                {% if review.content %}
+                <p class="mb-1">{{ review.content }}</p>
+                {% endif %}
+                <small class="text-muted">{{ review.created_at.strftime('%Y-%m-%d') }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="text-muted">暂无评价</p>
+        {% endif %}
+    </div>
+{% endmacro %}

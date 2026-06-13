@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}编辑资料 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">编辑个人资料</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.edit_profile') }}">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else "")) }}
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback">{{ form.phone.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="选填") }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">{{ form.email.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.wechat.label(class="form-label") }}
+                        {{ form.wechat(class="form-control" + (" is-invalid" if form.wechat.errors else ""), placeholder="选填") }}
+                        {% if form.wechat.errors %}
+                            <div class="invalid-feedback">{{ form.wechat.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.region.label(class="form-label") }}
+                        {{ form.region(class="form-select" + (" is-invalid" if form.region.errors else "")) }}
+                        {% if form.region.errors %}
+                            <div class="invalid-feedback">{{ form.region.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary">取消</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

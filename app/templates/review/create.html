@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}发表评价 - 校园二手交易平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+.star-rating input {
+    display: none;
+}
+.star-rating label {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 0.1rem;
+}
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">发表评价</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('review.create_review') }}">
+                    {{ form.hidden_tag() }}
+                    <input type="hidden" name="order_id" value="{{ form.order_id.data or order_id }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">评分 <span class="text-danger">*</span></label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" required>
+                            <label for="star5">&#9733;</label>
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4">&#9733;</label>
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3">&#9733;</label>
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2">&#9733;</label>
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1">&#9733;</label>
+                        </div>
+                        {% if form.rating.errors %}
+                        <div class="text-danger small mt-1">{{ form.rating.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">评价内容</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" placeholder="请输入您的评价（可选）">{{ form.content.data or '' }}</textarea>
+                        {% if form.content.errors %}
+                        <div class="text-danger small mt-1">{{ form.content.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">提交评价</button>
+                        <a href="{{ url_for('order.my_purchases') }}" class="btn btn-outline-secondary">返回订单列表</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

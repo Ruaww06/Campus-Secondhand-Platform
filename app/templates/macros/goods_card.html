@@ -1,0 +1,23 @@
+{% macro render_goods_card(goods) %}
+<div class="goods-card">
+    <a href="{{ url_for('goods.detail', goods_id=goods.goods_id) }}" class="goods-image-link">
+        <div class="goods-image">
+            <img src="{{ goods.main_image_url or url_for('static', filename='img/default-goods.svg') }}"
+                 alt="{{ goods.title }}" loading="lazy">
+            <span class="goods-condition badge {{ condition_class(goods.condition_level) }}">
+                {{ goods.condition_label }}
+            </span>
+        </div>
+    </a>
+    <div class="goods-info">
+        <h5 class="goods-title">
+            <a href="{{ url_for('goods.detail', goods_id=goods.goods_id) }}">{{ goods.title }}</a>
+        </h5>
+        <div class="goods-price">¥{{ '%.2f'|format(goods.price) }}</div>
+        <div class="goods-meta">
+            <span class="goods-region">📍 {{ goods.region }}</span>
+            <span class="goods-views">👁 {{ goods.view_count }}</span>
+        </div>
+    </div>
+</div>
+{% endmacro %}

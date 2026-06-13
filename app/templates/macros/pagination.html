@@ -1,0 +1,30 @@
+{% macro render_pagination(pagination_obj) %}
+    {% if pagination_obj.pages > 1 %}
+    {# 构建不含 page 的查询参数，避免与 url_for 显式 page= 冲突 #}
+    {% set url_params = {} %}
+    {% for key, value in request.args.items() %}
+        {% if key != 'page' %}
+            {% set _ = url_params.update({key: value}) %}
+        {% endif %}
+    {% endfor %}
+    <nav class="pagination-container mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {{ 'disabled' if not pagination_obj.has_prev }}">
+                <a class="page-link" href="{{ url_for(request.endpoint, page=pagination_obj.prev_num, **url_params) }}">上一页</a>
+            </li>
+            {% for page in pagination_obj.iter_pages() %}
+                {% if page %}
+                <li class="page-item {{ 'active' if page == pagination_obj.page }}">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=page, **url_params) }}">{{ page }}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {{ 'disabled' if not pagination_obj.has_next }}">
+                <a class="page-link" href="{{ url_for(request.endpoint, page=pagination_obj.next_num, **url_params) }}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+{% endmacro %}

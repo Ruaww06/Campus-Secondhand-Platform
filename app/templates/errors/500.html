@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}服务器错误 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            </div>
+            <h1 class="display-4 fw-bold text-danger mb-3">500</h1>
+            <h2 class="h4 mb-3">服务器错误</h2>
+            <p class="text-muted mb-4">抱歉，服务器出现了一些问题。请稍后重试，或联系管理员。</p>
+            <a href="{{ url_for('goods.index') }}" class="btn btn-primary btn-lg">
+                返回首页
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+{% set status_map = {'pending': ('warning', '待确认'), 'confirmed': ('info', '已确认'),
+                     'completed': ('success', '已完成'), 'cancelled': ('secondary', '已取消')} %}
+{% set status_class, status_label = status_map.get(order.status, ('secondary', '未知')) %}
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <a href="{% if session.user_id == order.buyer_id %}{{ url_for('order.my_purchases') }}{% else %}{{ url_for('order.my_sales') }}{% endif %}"
+           class="text-decoration-none">&larr; 返回订单列表</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 左列：商品信息 -->
+    <div class="col-lg-7 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">订单商品</h5>
+                <span class="badge bg-{{ status_class }} fs-6">{{ status_label }}</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">订单号</small>
+                    <div class="fw-bold font-monospace">{{ order.order_no }}</div>
+                </div>
+
+                <!-- 商品卡片 -->
+                <div class="card bg-light mb-3">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if order.goods.main_image_url %}
+                            <img src="{{ order.goods.main_image_url }}" class="img-fluid rounded-start"
+                                 alt="{{ order.goods.title }}" style="width: 100%; height: 160px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary d-flex align-items-center justify-content-center text-white"
+                                 style="width: 100%; height: 160px;">
+                                <span style="font-size: 2rem;">&#128230;</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <a href="{{ url_for('goods.detail', goods_id=order.goods.goods_id) }}"
+                                       class="text-decoration-none">
+                                        {{ order.goods.title }}
+                                    </a>
+                                </h6>
+                                <p class="card-text">
+                                    <span class="text-danger fw-bold fs-5">&yen;{{ '%.2f'|format(order.goods.price) }}</span>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ order.goods.condition_label }}</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if order.remark %}
+                <div class="mb-3">
+                    <small class="text-muted">订单备注</small>
+                    <p>{{ order.remark }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 右列：订单信息与操作 -->
+    <div class="col-lg-5 mb-4">
+        <!-- 订单时间线 -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">订单进度</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-{{ 'secondary' if order.status == 'cancelled' else 'success' }} me-2">&check;</span>
+                    <span>下单</span>
+                    <small class="text-muted ms-auto">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    {% if order.status in ('confirmed', 'completed') %}
+                    <span class="badge bg-success me-2">&check;</span>
+                    {% elif order.status == 'pending' %}
+                    <span class="badge bg-warning me-2">&circlearrowright;</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">&times;</span>
+                    {% endif %}
+                    <span>卖家确认</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    {% if order.status == 'completed' %}
+                    <span class="badge bg-success me-2">&check;</span>
+                    {% elif order.status == 'confirmed' %}
+                    <span class="badge bg-info me-2">&circlearrowright;</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">&ndash;</span>
+                    {% endif %}
+                    <span>买家确认收货</span>
+                </div>
+                {% if order.status == 'completed' %}
+                <div class="d-flex align-items-center">
+                    {% if order.review %}
+                    <span class="badge bg-success me-2">&check;</span>
+                    <span>已评价</span>
+                    {% else %}
+                    <span class="badge bg-warning me-2">&circlearrowright;</span>
+                    <span>待评价</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 交易双方信息 -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">交易信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">买家</small>
+                    <div>
+                        <strong>{{ order.buyer.username }}</strong>
+                        {% if order.buyer.phone %}
+                        <span class="text-muted ms-2">{{ order.buyer.phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <small class="text-muted">卖家</small>
+                    <div>
+                        <strong>{{ order.seller.username }}</strong>
+                        {% if order.seller.phone %}
+                        <span class="text-muted ms-2">{{ order.seller.phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {# 卖家 + pending: 确认订单 #}
+                    {% if session.user_id == order.seller_id and order.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('order.confirm', order_id=order.order_id) }}"
+                          data-confirm="确认接受此订单？确认后买家将可以确认收货。" data-prevent-double-submit>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success">
+                            确认订单
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {# 买家 + confirmed: 确认收货 #}
+                    {% if session.user_id == order.buyer_id and order.status == 'confirmed' %}
+                    <form method="POST" action="{{ url_for('order.complete', order_id=order.order_id) }}"
+                          data-confirm="确认已收到商品？确认后订单将完成。" data-prevent-double-submit>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary">
+                            确认收货
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {# 买家/卖家 + pending: 取消订单 #}
+                    {% if order.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('order.cancel', order_id=order.order_id) }}"
+                          data-confirm="确定要取消此订单？" data-prevent-double-submit>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger">
+                            取消订单
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {# 买家 + completed + 未评价: 去评价 #}
+                    {% if session.user_id == order.buyer_id and order.status == 'completed' and not order.review %}
+                    <a href="{{ url_for('review.create_review', order_id=order.order_id) }}"
+                       class="btn btn-outline-success">
+                        去评价
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if order.status == 'cancelled' %}
+                <p class="text-muted mt-2 mb-0">此订单已取消</p>
+                {% elif order.status == 'completed' and order.review %}
+                <p class="text-muted mt-2 mb-0">此订单已评价</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

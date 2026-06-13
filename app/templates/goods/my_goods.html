@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% import "macros/pagination.html" as pagination_macro %}
+
+{% block title %}我的发布 - 校园二手交易平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">我的发布</h2>
+            <a href="{{ url_for('goods.publish') }}" class="btn btn-primary">发布新商品</a>
+        </div>
+
+        {% if goods %}
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:80px;">图片</th>
+                            <th>标题</th>
+                            <th>价格</th>
+                            <th>状态</th>
+                            <th>发布时间</th>
+                            <th style="width:180px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in goods %}
+                        <tr>
+                            <!-- 缩略图 -->
+                            <td>
+                                <a href="{{ url_for('goods.detail', goods_id=item.goods_id) }}">
+                                    <img src="{{ item.main_image_url or url_for('static', filename='img/default-goods.svg') }}"
+                                         alt="{{ item.title }}"
+                                         style="width:60px;height:45px;object-fit:cover;border-radius:0.25rem;">
+                                </a>
+                            </td>
+
+                            <!-- 标题 -->
+                            <td>
+                                <a href="{{ url_for('goods.detail', goods_id=item.goods_id) }}"
+                                   class="text-decoration-none text-dark">
+                                    <strong>{{ item.title }}</strong>
+                                </a>
+                            </td>
+
+                            <!-- 价格 -->
+                            <td class="text-danger fw-bold">&yen;{{ '%.2f'|format(item.price) }}</td>
+
+                            <!-- 状态 -->
+                            <td>
+                                {% if item.status == 'on_sale' %}
+                                <span class="badge bg-success">在售</span>
+                                {% elif item.status == 'sold' %}
+                                <span class="badge bg-secondary">已售出</span>
+                                {% elif item.status == 'off_shelf' %}
+                                <span class="badge bg-warning text-dark">已下架</span>
+                                {% else %}
+                                <span class="badge bg-light text-dark">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 发布时间 -->
+                            <td class="text-muted small">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+
+                            <!-- 操作 -->
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ url_for('goods.edit', goods_id=item.goods_id) }}"
+                                       class="btn btn-sm btn-outline-primary">编辑</a>
+
+                                    {% if item.status == 'on_sale' %}
+                                    <form action="{{ url_for('goods.off_shelf', goods_id=item.goods_id) }}"
+                                          method="post" class="d-inline" data-confirm="确定要下架该商品吗？" data-prevent-double-submit>
+                                        {{ csrf_token() }}
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">下架</button>
+                                    </form>
+                                    {% elif item.status == 'off_shelf' %}
+                                    <form action="{{ url_for('goods.on_sale', goods_id=item.goods_id) }}"
+                                          method="post" class="d-inline" data-confirm="确定要重新上架该商品吗？" data-prevent-double-submit>
+                                        {{ csrf_token() }}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">上架</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {{ pagination_macro.render_pagination(pagination) }}
+        {% else %}
+        <div class="text-center py-5">
+            <img src="{{ url_for('static', filename='img/default-goods.svg') }}" alt="暂无发布" class="mb-3" style="width:120px;opacity:0.4;">
+            <h5 class="text-muted">还没有发布任何商品</h5>
+            <p class="text-muted">快来看看有没有闲置物品可以出售吧！</p>
+            <a href="{{ url_for('goods.publish') }}" class="btn btn-primary mt-2">发布第一个商品</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

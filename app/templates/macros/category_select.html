@@ -1,0 +1,9 @@
+{% macro category_select_field(field_name, selected_id=none) %}
+    <select name="{{ field_name }}" class="form-select">
+        {% for cat in categories %}
+        <option value="{{ cat.category_id }}" {% if selected_id == cat.category_id %}selected{% endif %}>
+            {{ cat.category_name }}
+        </option>
+        {% endfor %}
+    </select>
+{% endmacro %}
