@@ -108,7 +108,9 @@
             <span class="text-primary" style="font-size:2rem;font-weight:800;font-family:var(--font-display);">&yen;{{ '%.2f'|format(goods.price) }}</span>
             {% if goods.original_price %}
             <span class="price-strikethrough ms-2">&yen;{{ '%.2f'|format(goods.original_price) }}</span>
+            {% if goods.original_price > goods.price %}
             <span class="badge bg-warning text-dark ms-1">省 &yen;{{ '%.2f'|format(goods.original_price - goods.price) }}</span>
+            {% endif %}
             {% endif %}
         </div>
 

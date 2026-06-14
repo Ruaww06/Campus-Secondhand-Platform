@@ -215,8 +215,8 @@ def edit(goods_id):
     """编辑已发布的商品。"""
     goods = Goods.query.get_or_404(goods_id)
 
-    # 验证所有权：仅卖家本人或管理员可编辑
-    if goods.seller_id != session['user_id'] and session.get('role') != 'admin':
+    # 验证所有权：仅卖家本人可编辑
+    if goods.seller_id != session['user_id']:
         flash('无权编辑该商品', 'error')
         return redirect(url_for('goods.my_goods'))
 

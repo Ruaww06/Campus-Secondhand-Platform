@@ -1,10 +1,11 @@
-from sqlalchemy import Index
+from sqlalchemy import Index, UniqueConstraint
 from app import db
 
 
 class OrderInfo(db.Model):
     __tablename__ = 'order_info'
     __table_args__ = (
+        UniqueConstraint('order_no', name='uk_order_no'),
         Index('idx_buyer', 'buyer_id'),
         Index('idx_seller', 'seller_id'),
         Index('idx_goods', 'goods_id'),
@@ -13,7 +14,7 @@ class OrderInfo(db.Model):
     )
 
     order_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    order_no = db.Column(db.String(50), nullable=False, unique=True)
+    order_no = db.Column(db.String(50), nullable=False)
     buyer_id = db.Column(db.Integer, db.ForeignKey('user.user_id', ondelete='CASCADE'),
                          nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.user_id', ondelete='CASCADE'),

@@ -1,19 +1,21 @@
-from sqlalchemy import Index
+from sqlalchemy import Index, UniqueConstraint
 from app import db
 
 
 class User(db.Model):
     __tablename__ = 'user'
     __table_args__ = (
+        UniqueConstraint('username', name='uk_username'),
+        UniqueConstraint('student_id', name='uk_student_id'),
         Index('idx_region', 'region'),
         {'mysql_charset': 'utf8mb4'}
     )
 
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
+    username = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     real_name = db.Column(db.String(50), nullable=False)
-    student_id = db.Column(db.String(20), nullable=False, unique=True)
+    student_id = db.Column(db.String(20), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     email = db.Column(db.String(100), nullable=True)
     wechat = db.Column(db.String(50), nullable=True)

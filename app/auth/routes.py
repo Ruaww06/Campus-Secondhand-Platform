@@ -60,7 +60,7 @@ def login():
             flash('用户名或密码错误', 'error')
             return render_template('auth/login.html', form=form)
 
-        if user.status == 'banned':
+        if user.status != 'active':
             flash('账号已被禁用', 'error')
             return render_template('auth/login.html', form=form)
 
@@ -105,15 +105,40 @@ def edit_profile():
     form = ProfileForm()
 
     if form.validate_on_submit():
+        # 唯一性校验：排除自身
+        existing_username = User.query.filter(
+            User.username == form.username.data,
+            User.user_id != user.user_id
+        ).first()
+        if existing_username:
+            flash('用户名已被占用', 'error')
+            return render_template('auth/edit_profile.html', form=form)
+
+        existing_student = User.query.filter(
+            User.student_id == form.student_id.data,
+            User.user_id != user.user_id
+        ).first()
+        if existing_student:
+            flash('学号已被注册', 'error')
+            return render_template('auth/edit_profile.html', form=form)
+
+        user.username = form.username.data
+        user.real_name = form.real_name.data
+        user.student_id = form.student_id.data
         user.phone = form.phone.data
         user.email = form.email.data or None
         user.wechat = form.wechat.data or None
         user.region = form.region.data
         db.session.commit()
+        # 更新 session 中的 username
+        session['username'] = user.username
         flash('资料更新成功', 'success')
         return redirect(url_for('auth.profile'))
 
     # GET 请求：填充当前用户信息
+    form.username.data = user.username
+    form.real_name.data = user.real_name
+    form.student_id.data = user.student_id
     form.phone.data = user.phone
     form.email.data = user.email
     form.wechat.data = user.wechat

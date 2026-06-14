@@ -49,6 +49,16 @@ class LoginForm(FlaskForm):
 
 
 class ProfileForm(FlaskForm):
+    username = StringField('用户名', validators=[
+        DataRequired(message='用户名不能为空'),
+        Length(min=3, max=20, message='用户名长度需在3-20字符之间')
+    ])
+    real_name = StringField('真实姓名', validators=[
+        DataRequired(message='真实姓名不能为空')
+    ])
+    student_id = StringField('学号', validators=[
+        DataRequired(message='学号不能为空')
+    ])
     phone = StringField('手机号', validators=[
         DataRequired(message='手机号不能为空')
     ])

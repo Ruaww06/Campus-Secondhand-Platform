@@ -174,7 +174,7 @@
                     <!-- 商品图片 -->
                     <div class="mb-4">
                         {{ form.images.label(class="form-label") }}
-                        {{ form.images(class="form-control" + (" is-invalid" if form.images.errors else ""), accept="image/*", multiple=true, **{"data-preview": "#imagePreviewContainer"}) }}
+                        {{ form.images(class="form-control" + (" is-invalid" if form.images.errors else ""), accept="image/*", multiple=true) }}
                         <div class="form-text">支持 JPG、PNG、GIF 格式，单张不超过 5MB。首张图片将作为主图。</div>
                         {% if form.images.errors %}
                             <div class="invalid-feedback">{{ form.images.errors[0] }}</div>
@@ -198,7 +198,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 增强图片预览：同时支持 data-preview 的基础预览和删除功能
-    var imageInput = document.querySelector('input[data-preview]');
+    var imageInput = document.querySelector('input[name="images"]');
     var previewContainer = document.getElementById('imagePreviewContainer');
     var selectedFiles = new DataTransfer();
 
@@ -221,8 +221,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedFiles.items.add(file);
                 addPreviewItem(file);
             });
+            // 先清 value 再设 files，避免 Chrome 清空 files
+            this.value = '';
             this.files = selectedFiles.files;
-            this.value = ''; // 重置以便可重复选择同一文件
         });
 
         function addPreviewItem(file) {

@@ -11,7 +11,7 @@ def login_required(f):
             return redirect(url_for('auth.login', next=request.url))
         from app.models import User
         user = db.session.get(User, session['user_id'])
-        if not user or user.status == 'banned':
+        if not user or user.status != 'active':
             session.clear()
             flash('账号已被禁用，请重新登录', 'error')
             return redirect(url_for('auth.login', next=request.url))
@@ -27,7 +27,7 @@ def admin_required(f):
             return redirect(url_for('auth.login'))
         from app.models import User
         user = db.session.get(User, session['user_id'])
-        if not user or user.status == 'banned':
+        if not user or user.status != 'active':
             session.clear()
             flash('账号已被禁用，请重新登录', 'error')
             return redirect(url_for('auth.login'))
