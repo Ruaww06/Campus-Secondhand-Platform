@@ -1,0 +1,113 @@
+{
+    "graph_type": "ER图",
+    "domain": "校园二手交易平台",
+    "entities": [
+        {
+            "name": "用户",
+            "desc": "系统核心主体，可担任买家、卖家、管理员三种角色"
+        },
+        {
+            "name": "商品分类",
+            "desc": "商品的类别划分实体，如教材、电子产品、生活用品等"
+        },
+        {
+            "name": "商品",
+            "desc": "用户发布的二手商品，含标题、价格、成色、状态等信息"
+        },
+        {
+            "name": "商品图片",
+            "desc": "商品对应的展示图片，一个商品可有多张，含主图标识"
+        },
+        {
+            "name": "订单",
+            "desc": "交易单据，关联买家、卖家、商品，含订单号、状态、备注"
+        },
+        {
+            "name": "评价",
+            "desc": "依附于订单的评价实体，一个订单有且仅有一条评价；含评分(1-5)、评价内容；评价人、被评价卖家均关联至用户"
+        },
+        {
+            "name": "管理日志",
+            "desc": "管理员操作行为记录。target_type + target_id 构成多态引用，可指向商品、用户、订单等任意实体，不限定单一目标类型"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "发布",
+            "entity_a": "用户",
+            "entity_b": "商品",
+            "cardinality": "1:N",
+            "note": "用户作为卖家发布商品"
+        },
+        {
+            "name": "购买",
+            "entity_a": "用户",
+            "entity_b": "订单",
+            "cardinality": "1:N",
+            "note": "用户作为买家创建订单（buyer_id）"
+        },
+        {
+            "name": "售出",
+            "entity_a": "用户",
+            "entity_b": "订单",
+            "cardinality": "1:N",
+            "note": "用户作为卖家接收订单（seller_id），与'购买'是同一用户实体的两重角色"
+        },
+        {
+            "name": "收藏",
+            "entity_a": "用户",
+            "entity_b": "商品",
+            "cardinality": "M:N",
+            "note": "用户收藏商品；落地自动生成 favorite 中间表，含收藏时间 created_at"
+        },
+        {
+            "name": "发表评价",
+            "entity_a": "用户",
+            "entity_b": "评价",
+            "cardinality": "1:N",
+            "note": "用户作为买家发表评价（reviewer_id）"
+        },
+        {
+            "name": "被评价",
+            "entity_a": "用户",
+            "entity_b": "评价",
+            "cardinality": "1:N",
+            "note": "用户作为卖家收到评价（seller_id），与'发表评价'区分两重角色"
+        },
+        {
+            "name": "评价所属",
+            "entity_a": "订单",
+            "entity_b": "评价",
+            "cardinality": "1:1",
+            "note": "锚定'一单一评'业务约束：一个订单有且仅有一条评价，评价依附于订单"
+        },
+        {
+            "name": "包含商品",
+            "entity_a": "商品分类",
+            "entity_b": "商品",
+            "cardinality": "1:N",
+            "note": "分类下可包含多个商品"
+        },
+        {
+            "name": "包含图片",
+            "entity_a": "商品",
+            "entity_b": "商品图片",
+            "cardinality": "1:N",
+            "note": "商品可有多张展示图片"
+        },
+        {
+            "name": "订单商品",
+            "entity_a": "商品",
+            "entity_b": "订单",
+            "cardinality": "1:N",
+            "note": "一个商品可能产生多个历史订单"
+        },
+        {
+            "name": "记录操作",
+            "entity_a": "用户",
+            "entity_b": "管理日志",
+            "cardinality": "1:N",
+            "note": "管理员产生操作日志"
+        }
+    ]
+}
