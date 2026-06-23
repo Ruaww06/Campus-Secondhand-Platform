@@ -26,6 +26,12 @@ mysql -u root -p < schema.sql
 
 这会创建 `campus_secondhand` 数据库和全部 8 张表。
 
+如果本机 MySQL 的 `root` 用户设置了密码，启动前需配置数据库连接地址：
+
+```bash
+export DATABASE_URL="mysql+pymysql://root:你的密码@localhost:3306/campus_secondhand"
+```
+
 ### 4. （可选）灌入种子数据
 
 ```bash
@@ -46,7 +52,7 @@ python run.py
 
 | 角色 | 用户名 | 密码 |
 |:---|:---|:---|
-| 管理员 | `admin` | `admin123` |
+| 管理员 | `admin` | `123456` |
 
 （仅当执行了 `init_data.sql` 时生效；否则自行注册）
 
@@ -76,11 +82,18 @@ python run.py
 
 ## 运行测试
 
+运行测试前需安装测试依赖；UI 测试还需安装 Playwright 浏览器：
+
+```bash
+pip install pytest pytest-flask pytest-playwright
+playwright install
+```
+
 ```bash
 # 创建测试库
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS campus_secondhand_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # 跑测试
-pytest tests/api/ -v     # API 层 79 条
+pytest tests/api/ -v
 pytest tests/ui/ -v      # UI 层 10 条（需 Playwright）
 ```
